@@ -1,0 +1,15 @@
+.article-list:not(:last-child){
+    border-bottom: 1px solid rgb(206, 206, 206);
+}
+
+
+.paginator {
+    position:relative;
+    left: 50%;
+    bottom: 20px;
+  
+}
+
+.paginator .paginator-tips{
+    margin: 0px 0px -2px -9px;
+}

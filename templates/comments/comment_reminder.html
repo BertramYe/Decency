@@ -1,0 +1,65 @@
+{% extends 'users_managements/users_managements_commons.html' %}
+{% load static %}
+{# 加载自定义的templatetags类 #}
+{% load comments_extras %}
+
+
+{# 页面标题 #}
+{% block pagetitle %}
+   消息列表
+{% endblock %} 
+
+{# 页面样式 #}
+{% block pagestyle %}
+  
+{% endblock %}
+
+{# 详细的信息修改操作 #}
+{% block change_information_form %}
+    {% if request.user.is_authenticated %} 
+        <ul class="list-group">
+            <li class="list-group-item list-group-item-info">评论我的：</li>
+            {% for  read_comment in total_comment_replies.comments_list %}
+                <li class="list-group-item ">
+                    {{ read_comment.comment_time| date:"Y-m-d H:i:s"}}
+                    {{ read_comment.user }} 评论了您的文章:
+                    {{ read_comment | safe }}
+                    {# get_article_url 是我在article的model里面自定义的方法，而此时我们想要它的值，故而不用加括号 #}
+                    <a href = "{{ read_comment.content_object.get_article_url }}"> 点击查看详情 </a>
+                </li>
+            {% empty %}
+                <p>  暂无评论！</p> 
+            {% endfor %}
+            </br>
+            <li class="list-group-item list-group-item-info">回复我的：</li>
+            {% for read_reply in total_comment_replies.replies_list %}
+                <li class="list-group-item ">
+                    {{ read_reply.comment_time| date:"Y-m-d H:i:s"}}
+                    {{ read_reply.user }} 回复了您:
+                    {{ read_reply | safe }}
+                    {# get_article_url 是我在article的model里面自定义的方法，而此时我们想要它的值，故而不用加括号 #}
+                    <a href = "{{ read_reply.content_object.get_article_url }}"> 点击查看详情 </a>
+                </li>
+
+                {% empty %}
+                    <p>  暂无回复！</p> 
+            {% endfor %} 
+        </ul>
+    {% else %} 
+        <span> 未登录，正在跳往首页！。。。。。 </span>
+        <script type="text/javascript" >
+           setTimeout("switchtohome()", 2000 )
+           function switchtohome(){   
+               window.location.href = "/"
+           }
+        </script>
+    {% endif %}
+
+{% endblock  %}
+
+{% block script_for_comments_managements %}
+    <script type="text/javascript" >
+       
+    </script>
+{% endblock  %}
+

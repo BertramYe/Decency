@@ -1,0 +1,47 @@
+.articles-information-discriptions h5 {
+  display: inline-block;
+}
+
+.articles-information-discriptions p {
+  text-indent: 2em;
+  letter-spacing: 1px;
+  line-height: 22px;
+}
+
+#more-articles {
+  margin: 2em auto;
+}
+
+#debate-display form{
+  display: block;
+  width: 100%;
+}
+
+#debates-content-display{
+  display: block;
+  margin-top: 5em;
+  margin-bottom: 200px;
+  border:1px solid transparent
+}
+.debates-content-display-title{
+  margin-bottom: 1em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid #ccc;
+  width: 100%;
+}
+
+.like-active {
+  color: red;
+}
+
+.reply-content {
+  margin-left: 2em;
+}
+
+#like {
+  color: #337ab7;
+}
+
+#debates-table{
+  width: 1094px;
+}

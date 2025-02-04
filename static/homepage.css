@@ -1,0 +1,39 @@
+.homepagetext {
+  text-align: center;
+  margin-top: 70px;
+  font-size: 30px;
+}
+
+.homepage-search-style{
+  text-align: center;
+  padding-top: 50px;
+  padding-bottom: 20px;
+}
+
+/* 子类中虽然都是class，但是在样式指定时，之间需要用空格隔开 */
+.homepage-search-style .form-group .form-control{
+  width: 500px;
+}
+
+
+.simple-reading-statistics{
+  color: #aaaaaa;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hot-article-categories{
+  font-weight: bold;
+}
+
+
+
+#copyrightstyle{
+  text-align: center;
+  margin-top: 32em;
+  color: #aaaaaa;
+}
+
+#copyrightstyle a{
+  color: #aaaaaa;
+}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{# 在2.0中加载静态文件是直接使用  {% load staticfiles %}，下面是3.0的使用方式#}
+{% load static %}
+{# 加载自定义的templatetags类 #}
+{% load users_managements_extras %}
+
+{% block pagetitle %}
+   {{page_name}}
+{% endblock %}
+
+
+{% block pagestyle %}
+   <link rel="stylesheet" href="{% static 'users_managements/userlogin.css' %}">
+{% endblock %}
+
+{% block homepage_is_active %}
+   
+{% endblock  %}
+
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-8 col-xs-offset-2   col-md-4 col-md-offset-4">
+                <div class="panel panel-default">
+                    {% if not request.user.is_authenticated %}
+                    {# 用户没登陆跳转到这个页面将显示登录窗口，否则就直接跳转到首页 #}
+                        <div class="panel-heading">
+                          <h3 class="panel-title"> {{form_name}} 
+                              {% block qq_user_infor %}
+                              {% endblock  %}
+                          </h3>
+                        </div>
+                        <div class="panel-body">
+                        {# 登录表单 action为空代表当前页面 #}
+                            <form action=""  method="POST">
+                                    {% csrf_token %}
+                                    <div class="form-group"> 
+                                        {% for input_label in userlogin_forms %}
+                                            <h5>
+                                                {{input_label.label}}
+                                            </h5>
+                                            {{input_label}}
+                                            <h5 class="text-danger">
+                                                {{input_label.errors.as_text}}
+                                            </h5>
+                                        {% endfor %}
+                                        {# 整个form 出错 #} 
+                                        <span class="pull-left text-danger">
+                                            {{userlogin_forms.non_field_errors}}
+                                        </span>
+                                        <p class="pull-left" style="clear:both;margin-left: 1em;">
+                                            <a href="{% url 'change_password' %}?from_page={{request.get_full_path}}">忘记密码？ </a> 
+                                        </p>
+                                        <input type="submit" value="登录"  class="btn btn-primary pull-right" style="margin-top: 2em;">
+                                    </div> 
+                            </form>
+                        </div>
+                        
+                        
+                    {% else %}
+                       {# 用户已经登陆，直接跳转首页 #}
+                       <script type="text/javascript" >
+                              window.location.href = "/"
+                       </script>
+                    {% endif %}
+                </div> 
+                {% block  bind_QQ  %}
+                
+                {# qq登录的入口 #}
+                <div>
+                    <a href="{% get_qq_login_url  %}">
+                        <img src="{% static 'image/qq_icon.png' %}" alt=""  class="qq-icon">
+                    <span>用QQ登录 &gt;&gt;</span>
+                    </a>
+                </div>
+                
+                {% endblock  %}
+            </div>
+        </div>
+    </div>
+
+{% endblock  %}

@@ -1,0 +1,45 @@
+nav .nav-style .navbar-collapse{
+  border: none;
+  border-bottom: 1px solid #f8f8f8;
+  background-color: #f8f8f8;
+}
+
+.web-log{
+  float: left;
+  height: 70px;
+  padding: 15px 10px;
+  margin-top: -27px;
+}
+
+.qq-group-contact{
+  text-align: right;
+  position:fixed;
+  bottom:240px;
+  right:0px;
+  display: inline;
+}
+
+.qq-group-contact .qq-group-contact-tips{
+  color: white;
+  width: 50px;
+  height: 150px;
+  padding: 0px 8px;
+  display: inline;
+  text-align: center;
+  margin-right: 15px;
+  font-size: 20px;
+  border: 3px double white;;
+  writing-mode:vertical-rl;
+  background-color:#198dfd;
+  border-top-left-radius: 35px;
+  border-bottom-right-radius: 45px;
+}
+
+.qq-group-contact .qq-group-contact-pic{
+  position: absolute;
+  text-align: left;
+  left: -210px;
+  top: -210px;
+  width: 200px;
+  height: 400px;
+}

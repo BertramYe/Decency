@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    
+    <title>Conbine the letter which you want</title>
+    <link rel="stylesheet" href="{% static 'web3DResource/stl_conbiner.css' %}">
+</head>
+<body>
+
+
+     <!-- 方便使用脚手架的写法，three.js 的新的引入方式 -->
+    <!--addons是 three.js自带的插件，也就是它的扩展库 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.154.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.154.0/examples/jsm/"
+            }
+        }
+    </script>
+
+
+
+    <!-- 以下为three.js的写法完成的写法 -->
+    <script type="module" src="{% static 'web3DResource/stl_conbiner.js' %}">
+    
+    </script> 
+    <div id="container">
+
+    </div>
+    <div class="input_area">
+        <label for="">plese input the char you want create the 3D words:</label>
+        <input type="text" id="inputStringChar">
+        <button id="genSTL">click</button>
+        <button id = "download">download</button>
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,11 @@
+p {
+    word-break: break-all;
+}
+
+#release-btn{
+    margin-left: 70%;   
+}
+
+#delete-btn{
+    margin-left: 70%;
+}

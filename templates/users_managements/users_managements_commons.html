@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{# 在2.0中加载静态文件是直接使用  {% load staticfiles %}，下面是3.0的使用方式#}
+{% load static %}
+
+{# 页面标题 #}
+{% block pagetitle %}
+      {{ page_title }}
+{% endblock %}
+
+{# 页面样式 #}
+{% block pagestyle %}
+   <link rel="stylesheet" href="{% static 'users_managements/users_managements_commons.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-8 col-xs-offset-2   col-md-4 col-md-offset-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <h3 class="panel-title">{{ form_title }}</h3>
+                    </div>
+                    <div class="panel-body"> 
+                            {% block change_information_form %}
+                            
+                            {% endblock  %}
+                    </div>
+                </div>     
+            </div>
+        </div>
+    </div>  
+
+{% endblock  %}
+
+
+{% block  scripts_extends %}
+<!-- 这里面放的继承代码本质上放的是在 base.html里面的坑 -->
+<script type="text/javascript" >
+
+// 提前自定义邮箱发送的函数
+function verification_code_sending(send_email_for,send_verification_code_btn,email_address_id,email_tips_id){
+    $(send_verification_code_btn).click(function(){
+         // 获取邮件地址
+    var email_address = $(email_address_id).val()
+    $(email_tips_id).text("") // 每次点击，提示信息都会提前清空掉
+    // 验证邮箱输入的信息 
+    if(email_address==""){
+        $(email_tips_id).text("输入的邮箱信息不能为空！");
+        // 并且直接跳出执行
+        return false;
+    }else{
+        // 否则就发送验证码邮件给邮箱
+        $.ajax({
+            url:"{% url 'send_email_with_verify_code' %}",
+            method:'GET',
+            data:{
+                'email':email_address,
+                'send_email_for':send_email_for,
+            },
+            cache:false,
+            success:function(data){
+                if(data['status']=='SUCCESS'){
+                    alert("验证码发送"+data['status']+"，请注意在填写的邮件中查收!")
+                }
+                else if(data['status']=='ERROR_EMAIL_REPEAT'){
+                    $(email_tips_id).text("邮箱已存在，不能重复绑定！"); 
+                }
+                else if(data['status']=='ERROR_EMAIL_NOT_EXIST'){
+                    $(email_tips_id).text("邮箱不存在,请输入正确的邮箱地址！"); 
+                }
+                else{
+                    alert('验证码发送失败，请刷新网页后重试！')
+                }
+            },
+        });
+        // 邮件发送成功、失败后，为了减轻服务器的压力，我们可以设置一个倒计时的按钮装置，即，设置邮件发送的时间间隔
+        // 但有时还是有人会直接绕过前端，直接调用后端接口，为此我们可以在后端做一下相应的限制
+        $(this).addClass('disabled');
+        $(this).attr('disabled',true);
+        var time_count = 60; // 设计倒计时为60秒
+        var interval_count = setInterval(()=>{
+            if(time_count <= 0){
+                // 倒计时结束，清除间隔函数
+                clearInterval(interval_count);
+                $(this).removeClass('disabled')
+                $(this).attr('disabled',false);
+                $(this).val("点击发送验证码");
+                return false;        
+            }else{
+                time_count--;
+                $(this).val(time_count+"S后重新发送");
+            }
+        },1000)
+    }
+    }
+)};
+
+
+// 调用邮箱发送函数，为绑定邮箱发送邮件验证码
+verification_code_sending(
+    'bind_email_address',
+    '#id_verification_code_send_btn_for_bind_email',
+    '#id_new_email_address',
+    '#new_email_address-tip'
+    );
+
+// 调用邮箱发送函数，为忘记密码发送邮箱验证
+verification_code_sending(
+    'forgot_password',
+    '#id_verification_code_send_btn_forget_password',
+    '#id_bind_email_address',
+    '#bind_email_address-tip'
+    );
+
+// 调用邮箱发送函数，为注册页面发送邮箱验证码信息
+verification_code_sending(
+    'new_user_register',
+    '#id_verification_code_send_btn_for_register',
+    '#id_email',
+    '#email-tip'
+);
+
+
+</script>
+
+
+{% block script_for_comments_managements %}
+  {# 为comments的释放做准备 #}
+{% endblock  %}
+
+{% endblock  %}

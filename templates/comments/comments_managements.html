@@ -1,0 +1,80 @@
+{% extends 'users_managements/users_managements_commons.html' %}
+{% load static %}
+
+{# 页面样式 #}
+{% block pagestyle %}
+   <link rel="stylesheet" href="{% static 'comments\comments_managements.css' %}">
+{% endblock %}
+
+{# 详细的信息修改操作 #}
+{% block change_information_form %}
+    {% if request.user.is_authenticated and request.user.is_staff %} 
+        <form action=""  method="POST">
+            {% csrf_token %}
+            <div class="form-group"> 
+                <ul class="list-group">
+                    {% for unrealeased_commnet in total_unrealeased_commnets %}
+                        <li class="list-group-item"> 
+                            <span >
+                                {{unrealeased_commnet | safe}}
+                                {# get_article_url 是我在article的model里面自定义的方法，而此时我们想要它的值，故而不用加括号 #}
+                                <a href = "{{ unrealeased_commnet.content_object.get_article_url }}" >点击查看用户评论的文章</a>
+                            </span>
+                            <button type="submit" id ="delete-btn"  onclick = "release_btn({{unrealeased_commnet.pk}},'Comment_Delete')">{{ submit_delete }}</button>
+                            <button type="submit" id ="release-btn"  onclick = "release_btn({{unrealeased_commnet.pk}},'Comment_Release')">{{ submit_released }}</button>
+                        </li>
+                    {% empty %}
+                        <p>暂无需要处理的评论内容！</p>
+                    {% endfor %}
+                </ul>
+            </div> 
+            {# 整个form 出错 #} 
+            <span class="pull-left text-danger">
+                {{total_unrealeased_commnets.non_field_errors}}
+            </span>
+        </form>
+    {% else %} 
+        <span> 未登录，正在跳往首页！。。。。。 </span>
+        <script type="text/javascript" >
+           setTimeout("switchtohome()", 2000 )
+           function switchtohome(){   
+               window.location.href = "/"
+           }
+        </script>
+    {% endif %}
+
+{% endblock  %}
+
+{% block script_for_comments_managements %}
+    <script type="text/javascript" >
+        function release_btn(comment_pk,op_type){
+            $.ajax({
+                url:"{% url 'released_comment' %}",
+                method:'GET',
+                data:{
+                    comment_id:comment_pk,
+                    operation_type:op_type,
+                },
+                cache:false,
+                success:function(data){
+                    if(data['Status']=='SUCCESS-Release'){
+                        alert("成功释放！");
+                    }
+                    else if(data['Status']=='SUCCESS-Delete'){
+                        alert('删除评论陈功！');
+                    }
+                    else if(data['Status']=='Failed-Comment-Unpass'){
+                        alert('审核/删除失败，请刷新网页重试！');
+                    }else if (data['Status']=='Failed-User-Unauthorized'){
+                        alert('用户未登录/无权限修改');
+                    }
+                    else{
+                        alert('审核失败，请刷新网页重试！');
+                    };
+                    return false;
+                },
+            })
+        };
+    </script>
+{% endblock  %}
+

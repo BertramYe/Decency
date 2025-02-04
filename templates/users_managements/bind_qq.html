@@ -1,0 +1,24 @@
+{% extends 'users_managements/userlogin.html' %}
+
+
+{% block qq_user_infor %}
+    (<img src="{{qq_user_figure}}" alt="" class="img-circle" >
+    [
+    <span>{{qq_user_nick_name}}</span>
+    ])
+    请输入您在本站注册的账户信息
+{% endblock  %}
+
+{% block bind_QQ %}
+
+<div>
+    <a href="{% url 'userregister'  %}">
+        没有账号？点击进行注册 &gt;&gt;
+    </a>
+</div>
+
+{% endblock  %}
+
+
+
+

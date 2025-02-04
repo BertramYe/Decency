@@ -1,0 +1,22 @@
+.article-list:not(:last-child) {
+  border-bottom: 1px solid rgb(206, 206, 206);
+}
+
+.article-list p {
+  margin: 30px auto;
+}
+
+.article-list-heading {
+  font-size: 20px;
+  margin: 5px auto;
+}
+.paginator {
+  position:relative;
+  left: 50%;
+  bottom: 20px;
+  margin-top: 20px;
+}
+
+.paginator .paginator-tips{
+  margin: 0px 0px -2px -9px;
+}

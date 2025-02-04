@@ -1,0 +1,19 @@
+{% extends 'articles/article_lists.html' %}
+
+{# 页面标题 #}
+{% block pagetitle %}
+  {{article_date | date:"Y年m月"}} 文章
+{% endblock %}
+
+
+{% block article_is_active %}
+  none
+{% endblock  %}
+
+
+{% block article_list_title %}
+
+ {{article_date | date:"Y年m月"}} 
+ <span>( 当前页面显示 {{ article_list | length }} 篇，共 {{ article_paginator.count }} 篇)</span>
+ 
+{% endblock  %}

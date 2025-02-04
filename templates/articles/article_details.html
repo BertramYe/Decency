@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{# 加载自定义的templatetags类 #}
+{% load comments_extras %}
+{% load likes_extras %}
+
+{# 页面标题 #}
+{% block pagetitle %}
+{{ article_detail.title }}
+{% endblock %}
+
+{# 页面样式#}
+{% block pagestyle %}
+
+<link rel="stylesheet" href="{% static 'articles/article_details.css' %}">
+{# 引入django-ckeditor的js文件，为评论的富文本做准备 #}
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor-init.js' %}"></script>
+<script type="text/javascript" src="{% static 'ckeditor/ckeditor/ckeditor.js' %}"></script>
+{% endblock %}
+
+
+{# 页面内容 #}
+{% block content %}
+<div class="container-fluid">
+     <div class="row">
+          <div class="col-xs-10 col-xs-offset-1">
+               <div class="articles-information-discriptions">
+                    <h3> {{article_detail.title}} </h3>
+                    <h5> &nbsp; 作者：{{article_detail.author}} </h5>
+                    <h5> &nbsp; 文章类型:
+                         <a href="{% url 'article_type_name'  article_detail.type_name  %}">
+                              {{article_detail.type_name}}
+                         </a>
+                    </h5>
+                    <h5> &nbsp; 发表时间：{{article_detail.created_time | date:"Y-m-d H:i:s"}} </h5>
+                    <span> &nbsp; 阅读({{article_detail.get_read_number}}) </span>
+                    <span> &nbsp; 评论({% get_comment_number article_detail.pk %})   {{article_detail.content_type}}</span>
+                    <span> &nbsp; 点赞( {% get_likes_numbers article_detail.pk 'article' %} ) </span>
+                    
+                    <!-- 对于新的网站的改版，当前没有登录，不允许查看文章内容 -->
+                    {% if request.user.is_authenticated %}
+                         <!--为了安全起见和，防止页面是乱码，django提供了safe 过滤器，
+                            主要是一些特殊字符，空格 ，换行一类的为了想要在页面显示正常，
+                            一定要把safe过滤器放在最后面,加了safe,可以将文章内包含的html语句给转义出来   -->
+                         <p> {{article_detail.contents | safe}} </p>
+                         <!-- 与safe过滤器相对的就是 striptags 它让所有 html语句以及转义符全部不转义 -->
+                         <!-- <p>   {{article_detail.contents | striptags}} </p> -->
+                    {% else %}
+                    <div class="debates-userlogin">
+                         <p> 您尚未登录，<a href="{% url 'userlogin' %}?login_from={{request.get_full_path}}"><button class="btn btn-primary"> 登录 </button></a> 后，方可查看文章内容~
+                         </p>
+                         <p> 若您还未注册，请先 <a
+                                   href="{% url 'userregister' %}?login_from={{request.get_full_path}}"><button class="btn btn-primary">  注册 </button></a> 后登录方可查看~
+                         </p>
+                          <p>  问题反馈和技术交流: QQ 群(903231450) </p>  
+                    </div>
+                    {% endif %}
+                    
+               </div>
+
+               <!-- 点赞模块 -->
+               <div id="like">
+                    <span class="glyphicon glyphicon-thumbs-up likes-article-{{ article_detail.pk }} {% user_liked_or_not article_detail.pk 'article' %} "
+                         onclick="user_liked_article('article',{{article_detail.pk}})"></span>
+                    <span class="like_numbers-article-{{ article_detail.pk }}">{% get_likes_numbers article_detail.pk 'article' %}</span>
+                    <span>赞一下！</span>
+               </div>
+
+               <div id="more-articles">
+                    {% if previous_article.pk %}
+                    <p> 上一篇：<a href="{% url 'article_details'  previous_article.pk  %}"> {{previous_article.title}} </a>
+                    </p>
+                    {% else %}
+                    <p> 上一篇： 没有了 </p>
+                    {% endif %}
+                    {% if next_article.pk %}
+                    <p> 下一篇：<a href=" {% url 'article_details' next_article.pk %} "> {{next_article.title}} </a></p>
+                    {% else %}
+                    <p> 下一篇： 没有了 </p>
+                    {% endif %}
+               </div>
+
+               <!-- 评论提交模块 -->
+               <div id='debates-table'>
+                    <!-- 利用 request.user.is_authenticated 来验证用户是否登录 -->
+                    <label class='debates-content-display-title'> 留言评论 </label>
+                    {% if request.user.is_authenticated %}
+                    <label> {{user.get_username_or_nickname}},欢迎留言评论~ </label>
+                    <form id="comments-submit-forms" action="{% url 'comment_submission' %}" method="POST">
+                         <!-- 启用令牌加密 -->
+                         {% csrf_token %}
+                         <!-- 以下为显示回复的目标信息，即像什么内容进行回复 -->
+                         <div id="reply-to-comment-content" style="display: none;">
+                              <p>您正在回复 <label id="reply-to-user"></label> 的评论：</p>
+                              <div id="reply-to-details" style="padding-left:2em;">
+
+                              </div>
+                              <p>请在下面输入框输入回复信息</p>
+                         </div>
+
+                         <!-- 下面为django的forms表单实现评论功能 -->
+                         {% get_comments_forms article_detail.pk as comments_forms %}
+                         {% for comments_form in comments_forms %}
+                         <p>{{comments_form}}</p>
+                         {% endfor %}
+                         {# 显示评论提交的错误信息 #}
+                         <span id="error-massage-alert" style="color: red;"></span>
+                         <input type="submit" value="提交评论" class="btn btn-primary pull-right">
+                    </form>
+                    {% else %}
+                    <div class="debates-userlogin">
+                         <p> 您尚未登录，<a href="{% url 'userlogin' %}?login_from={{request.get_full_path}}"><button class="btn btn-primary"> 登录 </button></a> 后，方可评论和回复~
+                         </p>
+                         <p> 若您还未注册，请先 <a
+                                   href="{% url 'userregister' %}?login_from={{request.get_full_path}}"><button class="btn btn-primary">  注册 </button></a> 后继续登录评论~
+                         </p>
+                            
+                    </div>
+                    {% endif %}
+                    <div id="debates-content-display">
+                         <label class="debates-content-display-title">评论展示</label>
+                         {# jQuery 插入新添加的评论内容 #}
+                         <div id="debates-content-added">
+                              {% get_primary_comments article_detail.pk as primary_comments %}
+                              {%for comment  in primary_comments %}
+                                   {# 为了做评论的审核 #}
+                                   {% if comment.comment_display_or_not %}
+                                        <div id="root_{{comment.pk}}">
+                                             {{comment.comment_time | date:"Y-m-d H:i:s"}}
+                                             <span id="reply-user-{{comment.pk}}"> {{comment.user.get_username_or_nickname}} </span>：
+                                             <span id="comment-details-{{comment.pk}}"> {{comment.comment_content | safe}} </span>
+
+                                             {# 点赞内容 #}
+                                             <span class="glyphicon glyphicon-thumbs-up likes-comment-{{ comment.pk }} {% user_liked_or_not  comment.pk 'comment' %} "
+                                                  onclick="user_liked_article('comment',{{comment.pk}})"></span>
+                                             <span class="like_numbers-comment-{{comment.pk}}">{% get_likes_numbers comment.pk  'comment' %}</span>
+                                             <p id="comment-replied-link">
+                                                  <a href="javascript:reply_comment({{comment.pk}})"> 回复 </a>
+                                             </p>
+                                        </div>
+                                   {% endif %}
+                              <div class="reply-content">
+                                   {% comment %} {% for reply in comment.root_comment.all %} {% endcomment %}
+                                   {% for reply in comment.all_replys %}
+                                        {# reply.comment_display_or_not 是为了后台给管理员 做评论审核  #}
+                                        {% if reply.comment_display_or_not %}
+                                             {{reply.comment_time | date:"Y-m-d H:i:s"}}
+                                             <span id="reply-user-{{reply.pk}}"> {{reply.user.get_username_or_nickname }} </span>
+                                             <label> 回复</label>
+                                             {{reply.replied_user.get_username_or_nickname }} ：
+                                             <span id="comment-details-{{reply.pk}}"> {{reply.comment_content | safe}} </span>
+
+                                             {# 回复点赞 #}
+                                             <span class="glyphicon glyphicon-thumbs-up likes-comment-{{ reply.pk }} {% user_liked_or_not reply.pk 'comment' %} "
+                                                  onclick="user_liked_article('comment',{{reply.pk}})"></span>
+                                             <span class="like_numbers-comment-{{reply.pk}}">{% get_likes_numbers reply.pk 'comment' %}</span>
+
+                                             <p id="comment-replied-link">
+                                                  <a href="javascript:reply_comment({{reply.pk}})">回复 </a>
+                                             </p>
+                                        {% endif %}
+                                   {% endfor %}
+                              </div>
+                              {% empty %}
+                              <p id="empty-debates-show">暂无评论，期待您的留言~</p>
+                              {% endfor %}
+                         </div>
+                    </div>
+               </div>
+          </div>
+     </div>
+</div>
+
+
+
+
+{% endblock %}
+
+{% block scripts_extends %}
+{# 下面为利用ajax处理评论提交 #}
+<script type="text/javascript">
+
+     $("#comments-submit-forms").submit(function() {
+
+          $("#error-massage-alert").text("");  // 在提交之前先将错误信息给清空掉
+          if (CKEDITOR.instances["id_comment_content"].document.getBody().getText().trim() == '') {
+               $("#error-massage-alert").text("评论内容，不能为空！");
+               // 提前在前端判断提交的内容是否为空，减少服务器后端的消耗
+               return false;
+          };
+
+          // 在提交数据之前，需要将ckeditor富文本内的输入内容更新一下，保证获取的数据正确
+          CKEDITOR.instances["id_comment_content"].document.getBody().getText().trim();
+          CKEDITOR.instances["id_comment_content"].updateElement();
+          // 异步提交,ajax将提交的内容用字典的方式进行传输
+          $.ajax({
+               // headers:{
+               //     'X-CSRFToken':'{{csrf_token}}'
+               // },
+               url: "{% url 'comment_submission' %}",
+               type: 'POST',
+               // 将当前form表单comments-submit-forms里面的提交的值序列化，并传给字典对象 data；
+               data: $(this).serialize(),
+               // 关闭缓存，可以将需要提交的内容，进行立即提交
+               cache: false,
+               // 提交完成后，会有两个提交结果 SUCCESS 或者 ERROR
+               success: function (data) {
+                    if (data['status'] == "SUCCESS") {
+                         // console.log(data)  
+                         // 将后端的数据插入到对应前端的标签内,下面这种为直接硬插入的方式
+                         // 注意用prepend（）方法是插入到标签内的首部，因为评论是按时间倒序显示的，
+                         // 另外注意，里面的for用法是为了显示后台已经评论过的数据
+                         if ($("#reply_comment_id").val() == 0) {
+
+                              //var debates_added = "<div id='root_" + data['pk'] + "'>" +
+                              //     data['comment_time'] +
+                              //     "<span id='reply-user-" + data['pk'] + "'> " + data['username'] + "</span>：" +
+                              //     "<span id='comment-details-" + data['pk'] + "'> " + data['comment_content'] + "</span>" +
+                              //     "<span class=\'glyphicon glyphicon-thumbs-up likes-comment-" + data['pk'] + "\' onclick=\'user_liked_article(\"comment\"," + data['pk'] + ")\'></span>" +
+                              //     "&nbsp;<span class='like_numbers-comment-" + data['pk'] + "'>0</span>" +
+                              //     "<p id='comment-replied-link' > " +
+                              //     "<a href='javascript:reply_comment(" + data['pk'] + ")'> 回复 </a> " +
+                              //     "</p>" +
+                              //     "</div>"
+                              //// 我们定义的 forms 里面字段reply_comment_id值为0时，
+                              ////就是评论需要插入第一行,也就是前端生成的下面这个标签
+                              //$("#debates-content-added").prepend(debates_added);
+                              // $("#reply_comment_id").val('0');
+                              // 这句加上是为了清空原评论为空的时候的提示" 暂无评论，期待您的留言~ "
+                              if ($("#empty-debates-show").text() != "") {
+                                   $("#empty-debates-show").text("");
+                              };
+                              $("#error-massage-alert").text("评论已提交，已通知后台管理审核，审核通过后，即可释放！");
+
+
+                         } else {
+                              // 下面代码为插入回复
+                              //var reply_added = "<div class='reply-content'> " +
+                              //     data['comment_time'] +
+                              //     "<span id='reply-user-" + data['pk'] + "'>&nbsp;" + data['username'] + "</span>" +
+                              //     "<label> 回复</label>" +
+                              //     "&nbsp;" + data['replied_user'] + "：" +
+                              //     "<span id='comment-details-" + data['pk'] + "'> " + data['comment_content'] + " </span>" +
+                              //     "<span class=\'glyphicon glyphicon-thumbs-up likes-comment-" + data['pk'] + "\' onclick=\'user_liked_article(\"comment\"," + data['pk'] + ")\'></span>" +
+                              //     "&nbsp;<span class='like_numbers-comment-" + data['pk'] + "'>0</span>" +
+                              //     "<p id='comment-replied-link'>" +
+                              //     "<a href='javascript:reply_comment(" + data['pk'] + ")'>回复 </a>" +
+                              //     "</p>" +
+                              //     "</div>"
+                              ////  注意append（）方法是在对应的标签的后面的外部插入新的标签内容
+                              //$("#root_" + data['root_pk']).append(reply_added);
+                              // 同时，当我们回复完成后，直接将回复的提示隐藏，  
+                              $("#reply-to-comment-content").hide();
+                              // 回复的标志进行复位 
+                              $("#reply_comment_id").val(0);
+                              //alert("回复成功！！！")
+                              $("#error-massage-alert").text("回复成功！请等待后台管理审核！");
+
+                         };
+                         // 新的评论插入完成后，清空富文本评论区
+                         CKEDITOR.instances['id_comment_content'].setData('');
+
+                    } else {
+                         // 提交信息错误，将错误信息渲染出来（此处我是渲染到alert里面）
+                         $("#error-massage-alert").text(data['error_message']);
+                         // alert(data['error_message']);          
+                    };
+
+               },
+               error: function (xhr) {
+                    console.log(xhr);
+               },
+          });
+          return false;
+
+     });
+
+     function reply_comment(reply_comment_id) {
+          //  传入回复的评论的id值
+          $("#reply_comment_id").val(reply_comment_id);
+          //  点击回复，触发reply_comment函数，利用动画效果跳转到ckeditor进行(聚焦)回复内容的输入   
+          $('html').animate({ scrollTop: $(".cke_editable"), top: -1000 });
+          CKEDITOR.instances["id_comment_content"].focus();
+          // 并且展现需要回复的内容对象信息
+          var reply_to_user = $("#reply-user-" + reply_comment_id).html();
+          var reply_to_details = $("#comment-details-" + reply_comment_id).html();
+          $("#reply-to-user").html(reply_to_user);
+          $("#reply-to-details").html(reply_to_details);
+          $("#reply-to-comment-content").show();
+     };
+
+     // 点赞函数
+     function user_liked_article(model_name, object_id) {
+          var is_like = false;
+          if ($('.likes-'+model_name+'-'+ object_id).hasClass('like-active')) {
+               is_like = true;
+          }
+          $.ajax({
+               url: "{% url 'userliked' %}",
+               method: "GET",
+               cache: false,
+               data: {
+                    "model_name": model_name,
+                    "object_id": object_id,
+                    "is_like": is_like,
+               },
+               success: function (data) {
+                    if (data['user_login'] == false) {
+                         //  根据后台反馈的用户状态信息，判断用户是否登录
+                         // alert("您还未登录，登陆后方可点赞！")
+                         //  调登录弹窗
+                         $('#userLoginModal').modal('show');
+                         // 同时将是否点赞的状态给移除掉
+                         if ($('.likes-'+model_name+'-'+ object_id).hasClass('like-active')) {
+                              $('.likes-'+model_name+'-'+object_id).removeClass("like-active");
+                         }
+                         
+                    } else {
+                         // 如果后端反馈用户是否点赞过的结果
+                         if (data['user_liked'] == true) {
+                              // 后端反馈如果用户成功点赞，那就前端颜色改变
+                              $('.likes-'+model_name+'-'+object_id).addClass("like-active");
+                         } else {
+                              // 后端反馈如果用户取消点赞，前端颜色再次改变
+                              $('.likes-'+model_name+'-'+object_id).removeClass("like-active");
+                         }
+                         $(".like_numbers-"+model_name+"-" + object_id).text(data['liked_number']);
+                         
+                    };
+
+               },
+               error: function (xhr) {
+                    console.log(xhr);
+
+               },
+
+          })
+     };
+
+
+     
+
+
+</script>
+
+
+{% endblock %}

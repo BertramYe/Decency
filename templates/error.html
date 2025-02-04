@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{# 在2.0中加载静态文件是直接使用  {% load staticfiles %}，下面是3.0的使用方式#}
+{% load static %}
+
+{% block pagestyle %}
+   
+{% endblock %}
+
+{% block homepage_is_active %}
+active
+{% endblock  %}
+
+
+{% block content %}
+    {{error_message}}
+    <a href="{{ redirections_path }}">点击返回</a>
+{% endblock  %}

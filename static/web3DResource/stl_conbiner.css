@@ -1,0 +1,32 @@
+#container{
+    /* width:   50%; */
+    /* height:  50%; */
+    /* width: 800px;
+    height: 500px; */
+    /* display: block; */
+    outline: none;
+     margin:  0 auto;
+     margin-top: 200px;
+     border: 1px solid black;
+     background: linear-gradient(to bottom, #000000, #676767);
+}
+
+/* #container canvas{
+    background: linear-gradient(to bottom, #000000, #676767);
+} */
+
+
+.input_area{
+    display: block;
+    width: auto;
+    height: 20px;
+    text-align: center;
+    margin-top: 100px;
+    
+}
+
+/* GUI style */
+.lil-gui.autoPlace{
+    top: 200px;
+    /* right: -20px + 50%; */
+}

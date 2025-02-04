@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{# 在2.0中加载静态文件是直接使用  {% load staticfiles %}，下面是3.0的使用方式#}
+{% load static %}
+
+
+{% block pagestyle %}
+    <link rel="stylesheet" href=" {% static 'reading_statistics/reading_statistics.css' %}" type="text/css">
+{# 引入hichart 前端图表插件 #}
+    <script src="{% static 'highcharts/highcharts.js.map' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+
+{# 图表详情 #}
+    <body>
+        <!-- 图表容器 DOM -->
+        <div id="container" class="reading-tatistics-chart-style"></div>
+        <!-- 引入 highcharts.js -->
+        <script>
+            // 图表配置
+            var options = {
+                chart: {
+                    type: 'line'                          //指定图表的类型，默认是折线图（line）
+                },
+                title: {
+                    text: '过去七天文章的的阅读量',
+                    verticalAlign:'top'                // 标题
+                },
+                xAxis: {
+                    categories:{{ specified_dates| safe }},
+                    tickmarkPlacement:'on' , // x 轴分类
+                },
+                yAxis: {
+                    title: {
+                        text: '每天总阅读量',
+                        x: -10, 
+                        y: 0              // y 轴标题
+                    }
+                },
+                series: [{                              // 数据列
+                    name: '阅读量',                        // 数据列名
+                    data: {{ weakly_read_numbers }}                     // 数据
+                }],
+                credits: {
+                    enabled: false          // 去掉首页 Hicharts.com的链接跳转
+                    },
+            };
+            // 图表初始化函数
+            var chart = Highcharts.chart('container', options);
+        </script>
+    </body>
+
+    <!-- 简单统计 -->
+    <div class="simple-reading-statistics">
+        <p> 本站累计文章 {{total_articles}} 篇，总累计阅读 {{total_articles_read_times}} 次 </p>
+    </div>
+
+
+{% endblock  %}

@@ -1,0 +1,224 @@
+{% load static %}
+
+{# 加载自定义的templatetags类 #}
+{% load comments_extras %}
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <!-- Required meta tags -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}" />
+    <link rel="bookmark" href="{% static 'favicon.ico' %}" type="image/x-icon" />
+    
+    <!-- Bootstrap CSS -->
+    <title>
+        Bertram的随笔 |  {% block pagetitle %}{% endblock %}
+     </title>
+     <link rel="stylesheet"  href=" {% static 'bootstrap-3.4.1/css/bootstrap.min.css' %}" crossorigin="anonymous">
+     <link rel="stylesheet" href="{% static 'base.css' %}">
+     {% block pagestyle %} 
+     
+     {% endblock  %}
+     
+  </head>
+
+  <body>
+
+    {% block navigate %}
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid nav-style">
+             
+          <div class="navbar-header">
+              <a class="navbar-brand" href=" {% url 'homepage' %} "> 
+                   <img src="{% static 'image/web-log.png' %}" alt="" class="web-log">
+                    Bertram 的随笔
+               </a>
+          </div>
+
+          <div  id="navbar-collapse" class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+              <li class=" {% block homepage_is_active %}{% endblock  %}  "><a href="{% url 'homepage' %}">首页</a></li>
+              <li class=" {% block article_is_active %}{% endblock  %} "  ><a href="{% url 'articles_list' %}">文章大全</a></li>
+            </ul>
+            
+           <ul class="nav navbar-nav navbar-right">
+              {# 用户搜索框 #}
+              <form class="navbar-form navbar-left"   {% block navbar-search-show-or_not %}{% endblock  %}   action= "{% url 'page_search' %}">
+               {% csrf_token %}
+                <div class="form-group">
+                  <input type="text" name = "search-key" class="form-control" placeholder="Search">
+                </div>
+                <button type="submit" class="btn btn-default">搜索</button>
+              </form>
+
+
+               {# 用户的登录和登出 #}
+               {% if request.user.is_authenticated %}
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                         {% if user.userprofile != '' %}
+                         {{ user.username }} ({{user.userprofile.nickname}}) 
+                         {% else %}
+                         {{ user.username }}
+                         {% endif %}
+                         <span class="caret">
+                         </span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      <li><a href="{% url 'userinformation' %}">个人资料</a></li>
+                      {# 后台管理的界面路由是django本身自带的admin:index，我们可以直接拿来使用, 注意，只要用户是staff或者超级管理员才有查看后台管理界面的权限  #}
+                      {% if request.user.is_staff or request.user.is_superuser %}
+                         <li><a href="{% url 'admin:index' %}">后台管理</a></li>
+                         <li><a href="{% url 'comment_management' %}">评论管理</a></li>
+                         <li><a href="{% url 'reading_statistics' %}">数据统计</a></li>
+
+                      {% endif %}
+                      <li>
+                         <a href="{% url 'comment_reminder' %}" >
+                              消息提醒
+                              {% get_unread_comments_and_replies_numbers request.user as total_unread_comments_and_replies_numbers  %}
+                              {% if total_unread_comments_and_replies_numbers > 0 %}
+                                   <span class="badge" >
+                                        {{total_unread_comments_and_replies_numbers}}
+                                   </span>
+                              {% endif %}
+                         </a>
+                      </li>
+                      <li role="separator" class="divider"></li>
+                      <li><a href="{% url 'userloginout' %}?from_page={{request.get_full_path}}">退出</a></li>
+                    </ul>
+                  </li>
+              {% else %}
+                <li><a href="{% url 'userlogin' %}?login_from={{request.get_full_path}}">登录</a></li>
+                <li><a href="{% url 'userregister' %}?login_from={{request.get_full_path}}">注册</a></li>
+              {% endif %}
+           </ul>
+
+          </div> 
+        </div>
+      </nav>
+    {% endblock %}
+
+    {% block content %}
+        
+    {% endblock %} 
+
+    <!-- 页面登录小弹窗  -->
+    <div class="modal fade" id="userLoginModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+         <div class="modal-dialog modal-sm" role="document">
+              <div class="modal-content">
+                   <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                  aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">登录</h4>
+                   </div>
+                   <form action="" method="POST" id="userLoginModal_informations">
+                        <div class="modal-body">
+                             {% csrf_token %}
+                             <div class="form-group">
+                                  {# login_form_model已经在 users_managements.context_processors.py中被定义为公共登录模板，并当作键值传到前端页面中了 #}
+                                  {% for input_label in login_form_model %}
+                                  <h5>
+                                       {{input_label.label}}
+                                  </h5>
+                                  {{input_label}}
+                                  <h5 class="text-danger">
+                                       {{input_label.errors.as_text}}
+                                  </h5>
+                                  {% endfor %}
+                                  {# 整个form 出错 #}
+                                  <!-- 弹窗登陆失败！ -->
+                                  <span id="userLoginModal_loginfail" class="pull-left text-danger"></span>
+                             </div>
+                        </div>
+                        <!-- <span>您还未登录，登陆后方可点赞！</span> -->
+                        <div class="modal-footer">
+                             <button type="submit" class="btn btn-primary">登录</button>
+                             <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        </div>
+                   </form>
+                   
+              </div>
+         </div>
+    </div>
+
+
+    <!-- 联系人信息悬浮窗-->
+    <div  class="qq-group-contact">
+     <div class="qq-group-contact-tips">
+          <img class="qq-group-contact-pic" src="{% static 'image/qq-group-contact.jpg' %}" hidden/>
+          联系博主  
+     </div>
+    </div>
+     
+    
+    
+
+    <!--  下面为bootstrap 的样式文件 -->
+     <script type="text/javascript"  src="{% static 'bootstrap-3.4.1/js/jquery_1.12.4.js' %}"  crossorigin="anonymous"></script>
+     <script type="text/javascript"  src="{% static 'bootstrap-3.4.1/js/bootstrap.min.js' %}"  crossorigin="anonymous"></script>
+    
+    {% block  scripts_extends %}
+    <!-- 这里面放继承页面的JS代码 -->
+    {% endblock  %}
+    
+
+    
+
+
+    
+    
+    <script type="text/javascript">
+     //联系人小弹窗
+     $(".qq-group-contact-tips").mouseover(
+          function (){
+               var qq_group_contact_img = $(".qq-group-contact-pic")
+               if(qq_group_contact_img.is(":hidden")){
+
+                    qq_group_contact_img.show();    //如果元素为隐藏,则将它显现
+
+               }else{
+
+                    qq_group_contact_img.hide();     //如果元素为显现,则将其隐藏
+
+               };
+
+          }
+     )
+
+
+
+     //页面登录小弹窗的JS代码 
+     // 登录小弹窗的异步提交
+     $("#userLoginModal_informations").submit(
+          function user_login_models() {
+               $.ajax({
+                    url: "{% url 'user_login_model' %}",
+                    method: "POST",
+                    cache: false,
+                    data: $(this).serialize(),
+                    success: function (data) {
+                         if (data['login_status'] == 'SUCCESS') {
+                              // 此时后台验证登录成功，我们就直接刷新一下本页面
+                              window.location.reload();
+                              console.log(data['login_status'])
+                              
+                         } else {
+                              // 否则就是登陆不成功，我们提示登陆错误！
+                              $("#userLoginModal_loginfail").text("用户名或密码错误，请重新登录！");    
+                         };
+                    },
+                    error: function (xhr) {
+                         console.log(xhr)
+                    },
+               });
+               // 执行结束，跳出当前函数
+               return false;
+          });
+     </script>
+      
+  </body>
+</html>

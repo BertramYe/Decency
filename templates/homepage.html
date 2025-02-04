@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{# 在2.0中加载静态文件是直接使用  {% load staticfiles %}，下面是3.0的使用方式#}
+{% load static %}
+
+
+{% block pagestyle %}
+    <link rel="stylesheet" href=" {% static 'homepage.css' %}" type="text/css">
+{% endblock %}
+
+{# 页面标题 #}
+{% block pagetitle %}
+   首页
+{% endblock %} 
+
+
+{% block homepage_is_active %}
+active
+{% endblock  %}
+
+
+{% block content %}
+    <p class='homepagetext'> 欢迎加入我们，让我们一起快快乐乐的学习吧！</p>
+   
+   <div class="homepage-search-style">
+    <!-- 在主页的搜索框，不再显示在导航栏，而是放在主页 -->
+    <form class="navbar-form"  action= "{% url 'page_search' %}">
+        {% csrf_token %}
+         <div class="form-group">
+           <input type="text" name = "search-key" class="form-control" placeholder="Search">
+         </div>
+         <button type="submit" class="btn btn-default">搜索</button>
+       </form>
+   </div>
+    
+    <!-- 简单统计 -->
+    <div class="simple-reading-statistics">
+        <p> 本站累计文章 {{total_articles}} 篇，今日累计阅读 {{today_total_article_reading_times}} 次，总累计阅读 {{total_articles_read_times}} 次 </p>
+    </div>
+
+   <!-- 热搜文章处理 -->
+    <div class="row">
+        <div  class="col-xs-8  col-xs-offset-4" >
+            <div class="row" >
+                <h3 class="col-xs-4 col-xs-offset-2" > 热搜文章推荐 </h3>
+            </div>
+            {# 今日热搜文章内容 #}
+            <div  class="col-xs-4">
+                <h5 class="hot-article-categories">今日热搜文章</h5>
+                {% for hot_article in today_hot_articles %}
+                    <p>
+                        <a href="{% url 'article_details' hot_article.content_object.pk %}">        
+                            {{  hot_article.content_object.title }}
+                        </a> 
+                    ({{hot_article.read_numbers_per_day}})
+                    </p>
+                {% empty %}
+                    <p>今日暂无热搜文章</p>
+                {% endfor %}
+            </div>
+            {# 昨日热搜文章内容 #}
+            <div  class="col-xs-4">
+                <h5 class="hot-article-categories">昨日热搜文章</h5>
+                {% for hot_article in yesterday_hot_articles %}
+                    <p>
+                        <a href="{% url 'article_details' hot_article.content_object.pk %}">        
+                            {{  hot_article.content_object.title }}
+                        </a> 
+                    ({{hot_article.read_numbers_per_day}})
+                    </p>
+                {% empty %}
+                    <p>昨日暂无热搜文章</p>
+                {% endfor %}
+            </div>
+            {# 近一周内热搜文章 #}
+            <div class="row" >
+                <h5 class="col-xs-8 col-xs-offset-2 hot-article-categories" > 近一周内热搜文章 </h5>
+            </div>
+            <div class="row" >
+                <div class="col-xs-4 col-xs-offset-2">
+                    {% for weaken_hot_artcle in weaken_hot_articles %}
+                        <p>
+                            <a href="{% url 'article_details' weaken_hot_artcle.id %}">        
+                                {{weaken_hot_artcle.title}}
+                            </a> 
+                                ({{weaken_hot_artcle.weakly_read_numbers}})
+                        </p>
+                    {% empty %}
+                        <p>最近一周暂无热搜文章</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+     
+    <footer  id="copyrightstyle">
+        <div>
+            Copyright © 2021 - {{now_year}} <a href="http://bertram-world.com">www.bertram-world.com</a> All Rights Reserved.
+            <p> ICP备案号:<a href="http://beian.miit.gov.cn">皖ICP备2021016464号-1</a>  意见反馈:<span>Q群 876649311</span> </p>
+        </div> 
+    </footer>
+     
+{% endblock  %}
+
+<!-- 对于文章首页导航栏的搜索框，不显示出来，其他页面在导航栏上显示 -->
+{% block navbar-search-show-or_not %}
+ hidden
+{% endblock  %}
